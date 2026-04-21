@@ -1,0 +1,67 @@
+{
+  "name": "credit-analysis",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern='src/__tests__/(domain|application)'",
+    "test:integration": "jest --testPathPattern='src/__tests__/infrastructure'",
+    "test:components": "jest --testPathPattern='src/__tests__/presentation'",
+    "test:e2e": "playwright test",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:headed": "cypress run --headed",
+    "ci:local": "node scripts/ci-local.js",
+    "ci:check": "npm run lint && npx tsc --noEmit && npm run test:unit && npm run build",
+    "prepare": "node -e \"try { require('husky') } catch (e) { if (e.code !== 'MODULE_NOT_FOUND') throw e }\" && husky install || true"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
+    "@mui/x-charts": "^9.0.2",
+    "@mui/x-data-grid": "^9.0.2",
+    "date-fns": "^4.1.0",
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "cypress": "^15.14.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "husky": "^9.0.11",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
+    "lint-staged": "^15.2.2",
+    "ora": "^5.4.1",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5",
+    "wait-on": "^7.2.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}
