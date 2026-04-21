@@ -10,9 +10,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:unit": "jest --testPathPattern='src/__tests__/(domain|application)'",
-    "test:integration": "jest --testPathPattern='src/__tests__/infrastructure'",
-    "test:components": "jest --testPathPattern='src/__tests__/presentation'",
+    "test:unit": "jest src/__tests__/domain src/__tests__/application",
+    "test:integration": "jest src/__tests__/infrastructure",
+    "test:components": "jest src/__tests__/presentation",
     "test:e2e": "playwright test",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
@@ -35,6 +35,8 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -53,6 +55,7 @@
     "ora": "^5.4.1",
     "ts-jest": "^29.4.9",
     "typescript": "^5",
+    "typescript-eslint": "^8.59.0",
     "wait-on": "^7.2.0"
   },
   "lint-staged": {
