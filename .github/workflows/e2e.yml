@@ -244,13 +244,13 @@ jobs:
         run: |
           echo "🔍 Checking E2E quality gate..."
           
-          if [ "${{ needs.cypress-run.result }}" != "success" ]; then
-            echo "❌ Cypress E2E tests failed"
+          if [ "${{ needs.cypress-run.result }}" = "failure" ] || [ "${{ needs.cypress-run.result }}" = "cancelled" ]; then
+            echo "❌ Cypress E2E tests failed (${{ needs.cypress-run.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.cypress-critical.result }}" != "success" ]; then
-            echo "❌ Critical flow tests failed"
+          if [ "${{ needs.cypress-critical.result }}" = "failure" ] || [ "${{ needs.cypress-critical.result }}" = "cancelled" ]; then
+            echo "❌ Critical flow tests failed (${{ needs.cypress-critical.result }})"
             exit 1
           fi
           

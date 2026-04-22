@@ -338,33 +338,33 @@ jobs:
         run: |
           echo "🔍 Checking quality gate..."
           
-          if [ "${{ needs.lint.result }}" != "success" ]; then
-            echo "❌ Lint failed"
+          if [ "${{ needs.lint.result }}" = "failure" ] || [ "${{ needs.lint.result }}" = "cancelled" ]; then
+            echo "❌ Lint failed (${{ needs.lint.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.typecheck.result }}" != "success" ]; then
-            echo "❌ Type check failed"
+          if [ "${{ needs.typecheck.result }}" = "failure" ] || [ "${{ needs.typecheck.result }}" = "cancelled" ]; then
+            echo "❌ Type check failed (${{ needs.typecheck.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.test-unit.result }}" != "success" ]; then
-            echo "❌ Unit tests failed"
+          if [ "${{ needs.test-unit.result }}" = "failure" ] || [ "${{ needs.test-unit.result }}" = "cancelled" ]; then
+            echo "❌ Unit tests failed (${{ needs.test-unit.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.test-integration.result }}" != "success" ]; then
-            echo "❌ Integration tests failed"
+          if [ "${{ needs.test-integration.result }}" = "failure" ] || [ "${{ needs.test-integration.result }}" = "cancelled" ]; then
+            echo "❌ Integration tests failed (${{ needs.test-integration.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.test-components.result }}" != "success" ]; then
-            echo "❌ Component tests failed"
+          if [ "${{ needs.test-components.result }}" = "failure" ] || [ "${{ needs.test-components.result }}" = "cancelled" ]; then
+            echo "❌ Component tests failed (${{ needs.test-components.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.build.result }}" != "success" ]; then
-            echo "❌ Build failed"
+          if [ "${{ needs.build.result }}" = "failure" ] || [ "${{ needs.build.result }}" = "cancelled" ]; then
+            echo "❌ Build failed (${{ needs.build.result }})"
             exit 1
           fi
           

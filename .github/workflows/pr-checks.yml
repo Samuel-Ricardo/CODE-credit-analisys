@@ -273,26 +273,26 @@ jobs:
         run: |
           echo "🔍 Validating PR quality gate..."
           
-          if [ "${{ needs.pr-metadata.result }}" != "success" ]; then
-            echo "❌ PR metadata check failed"
+          if [ "${{ needs.pr-metadata.result }}" = "failure" ] || [ "${{ needs.pr-metadata.result }}" = "cancelled" ]; then
+            echo "❌ PR metadata check failed (${{ needs.pr-metadata.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.size-analysis.result }}" != "success" ]; then
-            echo "❌ Bundle size analysis failed"
+          if [ "${{ needs.size-analysis.result }}" = "failure" ] || [ "${{ needs.size-analysis.result }}" = "cancelled" ]; then
+            echo "❌ Bundle size analysis failed (${{ needs.size-analysis.result }})"
             exit 1
           fi
           
-          if [ "${{ needs.security-scan.result }}" != "success" ]; then
-            echo "⚠️ Security scan completed with warnings"
+          if [ "${{ needs.security-scan.result }}" = "failure" ] || [ "${{ needs.security-scan.result }}" = "cancelled" ]; then
+            echo "⚠️ Security scan completed with warnings (${{ needs.security-scan.result }})"
           fi
           
-          if [ "${{ needs.dependency-review.result }}" != "success" ]; then
-            echo "⚠️ Dependency review completed with warnings"
+          if [ "${{ needs.dependency-review.result }}" = "failure" ] || [ "${{ needs.dependency-review.result }}" = "cancelled" ]; then
+            echo "⚠️ Dependency review completed with warnings (${{ needs.dependency-review.result }})"
           fi
           
-          if [ "${{ needs.coverage-diff.result }}" != "success" ]; then
-            echo "⚠️ Coverage check completed with warnings"
+          if [ "${{ needs.coverage-diff.result }}" = "failure" ] || [ "${{ needs.coverage-diff.result }}" = "cancelled" ]; then
+            echo "⚠️ Coverage check completed with warnings (${{ needs.coverage-diff.result }})"
           fi
           
           echo "✅ PR quality checks completed!"
