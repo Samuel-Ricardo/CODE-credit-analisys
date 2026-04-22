@@ -1,8 +1,11 @@
 name: Lighthouse Performance
 
+# ⚠️ DESABILITADO: Requer aplicação deployada
+# Este workflow foi configurado para execução manual apenas.
+# Execute manualmente via GitHub Actions UI quando a aplicação estiver disponível.
 on:
-  pull_request:
-    branches: [main, develop]
+  # pull_request:
+  #   branches: [main, develop]
   workflow_dispatch:
 
 jobs:

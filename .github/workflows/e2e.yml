@@ -1,14 +1,17 @@
 name: E2E Tests
 
+# ⚠️ DESABILITADO: Requer aplicação deployada
+# Este workflow foi configurado para execução manual apenas.
+# Execute manualmente via GitHub Actions UI quando a aplicação estiver disponível.
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+  # push:
+  #   branches: [main, develop]
+  # pull_request:
+  #   branches: [main, develop]
   workflow_dispatch:
-  schedule:
-    # Executa testes E2E diariamente às 2h da manhã (UTC)
-    - cron: '0 2 * * *'
+  # schedule:
+  #   # Executa testes E2E diariamente às 2h da manhã (UTC)
+  #   - cron: '0 2 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
