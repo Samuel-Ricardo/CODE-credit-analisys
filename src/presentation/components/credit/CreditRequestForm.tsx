@@ -1,36 +1,17 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { GlassCard } from '@/presentation/components/ui/GlassCard';
 import { AeroButton } from '@/presentation/components/ui/AeroButton';
 import { AeroInput, AeroSelect, AeroTextarea } from '@/presentation/components/ui/AeroInput';
-import { CPF } from '@/domain/value-objects/CPF';
-import { CNPJ } from '@/domain/value-objects/CNPJ';
+import {
+  createCreditRequestSchema,
+  type CreateCreditRequestFormValues,
+} from '@/application/validation/schemas';
+import { maskCPF, maskCNPJ, maskPhone, maskCEP } from '@/lib/masks';
 import type { CreateCreditRequestDTO } from '@/application/dtos/CreditRequestDTO';
-
-const schema = z.object({
-  customerTipo: z.enum(['PF', 'PJ']),
-  customerDocumento: z.string().min(11, 'Documento obrigatório').refine(
-    (val) => {
-      const clean = val.replace(/\D/g, '');
-      return CPF.isValid(clean) || CNPJ.isValid(clean);
-    },
-    'CPF ou CNPJ inválido',
-  ),
-  customerNome: z.string().min(3, 'Nome obrigatório'),
-  customerEmail: z.string().email('E-mail inválido'),
-  customerTelefone: z.string().min(8, 'Telefone obrigatório'),
-  customerRenda: z.coerce.number().positive('Informe a renda mensal'),
-  valorSolicitado: z.coerce.number().positive('Valor obrigatório').min(500, 'Mínimo R$ 500'),
-  bandeiraId: z.string().min(1, 'Selecione a bandeira'),
-  modalidade: z.string().min(1, 'Selecione a modalidade'),
-  finalidade: z.string().min(3, 'Informe a finalidade'),
-  observacoes: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 const BANDEIRAS = [
   { value: 'bandeira-visa',      label: 'Visa' },
@@ -40,10 +21,10 @@ const BANDEIRAS = [
 ];
 
 const MODALIDADES = [
-  { value: 'CREDITO_PESSOAL',  label: 'Crédito Pessoal' },
-  { value: 'CREDITO_PARCELADO',label: 'Crédito Parcelado' },
-  { value: 'CAPITAL_GIRO',     label: 'Capital de Giro' },
-  { value: 'FINANCIAMENTO',    label: 'Financiamento' },
+  { value: 'CREDITO_PESSOAL',   label: 'Crédito Pessoal' },
+  { value: 'CREDITO_PARCELADO', label: 'Crédito Parcelado' },
+  { value: 'CAPITAL_GIRO',      label: 'Capital de Giro' },
+  { value: 'FINANCIAMENTO',     label: 'Financiamento' },
 ];
 
 interface CreditRequestFormProps {
@@ -56,44 +37,43 @@ export function CreditRequestForm({ onSubmit, loading }: CreditRequestFormProps)
     register,
     handleSubmit,
     watch,
+    control,
+    resetField,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<CreateCreditRequestFormValues>({
+    resolver: zodResolver(createCreditRequestSchema),
     defaultValues: { customerTipo: 'PF' },
   });
 
   const tipo = watch('customerTipo');
 
-  const handleFormSubmit = async (values: FormValues) => {
+  // Reset document field when tipo switches so stale value doesn't persist
+  useEffect(() => {
+    resetField('customerDocumento');
+  }, [tipo, resetField]);
+
+  const handleFormSubmit = async (values: CreateCreditRequestFormValues) => {
     await onSubmit({
       ...values,
-      customerCep: undefined,
+      customerDocumento: values.customerDocumento.replace(/\D/g, ''),
+      customerCep: values.customerCep || undefined,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-6">
-      {/* Section: Customer */}
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-6" noValidate>
+      {/* Section 1: Customer */}
       <GlassCard>
         <h2 className="text-sm font-bold text-text mb-5 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-bold">1</span>
           Dados do Cliente
         </h2>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Tipo */}
+          {/* Tipo selector */}
           <div className="sm:col-span-2 flex gap-3">
             {(['PF', 'PJ'] as const).map((t) => (
-              <label
-                key={t}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  value={t}
-                  {...register('customerTipo')}
-                  className="accent-orange-500"
-                />
+              <label key={t} className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" value={t} {...register('customerTipo')} className="accent-orange-500" />
                 <span className="text-sm font-medium text-text/80">
                   {t === 'PF' ? 'Pessoa Física (CPF)' : 'Pessoa Jurídica (CNPJ)'}
                 </span>
@@ -101,17 +81,29 @@ export function CreditRequestForm({ onSubmit, loading }: CreditRequestFormProps)
             ))}
           </div>
 
-          <AeroInput
-            label={tipo === 'PF' ? 'CPF' : 'CNPJ'}
-            placeholder={tipo === 'PF' ? '000.000.000-00' : '00.000.000/0001-00'}
-            error={errors.customerDocumento?.message}
-            required
-            {...register('customerDocumento')}
+          {/* CPF / CNPJ with mask */}
+          <Controller
+            name="customerDocumento"
+            control={control}
+            render={({ field }) => (
+              <AeroInput
+                label={tipo === 'PF' ? 'CPF' : 'CNPJ'}
+                placeholder={tipo === 'PF' ? '000.000.000-00' : '00.000.000/0001-00'}
+                error={errors.customerDocumento?.message}
+                hint={tipo === 'PF' ? '11 dígitos' : '14 dígitos'}
+                required
+                value={field.value ?? ''}
+                onChange={(e) =>
+                  field.onChange(tipo === 'PF' ? maskCPF(e.target.value) : maskCNPJ(e.target.value))
+                }
+                onBlur={field.onBlur}
+              />
+            )}
           />
 
           <AeroInput
             label={tipo === 'PF' ? 'Nome Completo' : 'Razão Social'}
-            placeholder="Nome do cliente"
+            placeholder={tipo === 'PF' ? 'Nome do cliente' : 'Razão social da empresa'}
             error={errors.customerNome?.message}
             required
             {...register('customerNome')}
@@ -126,39 +118,69 @@ export function CreditRequestForm({ onSubmit, loading }: CreditRequestFormProps)
             {...register('customerEmail')}
           />
 
-          <AeroInput
-            label="Telefone"
-            placeholder="(11) 99999-9999"
-            error={errors.customerTelefone?.message}
-            required
-            {...register('customerTelefone')}
+          {/* Telefone with mask */}
+          <Controller
+            name="customerTelefone"
+            control={control}
+            render={({ field }) => (
+              <AeroInput
+                label="Telefone"
+                placeholder="(11) 99999-9999"
+                hint="Com DDD"
+                error={errors.customerTelefone?.message}
+                required
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                onBlur={field.onBlur}
+              />
+            )}
           />
 
           <AeroInput
             label="Renda Mensal (R$)"
             type="number"
             placeholder="5000"
+            hint="Valor bruto em reais"
             error={errors.customerRenda?.message}
             required
+            min={100}
             {...register('customerRenda')}
+          />
+
+          {/* CEP optional with mask */}
+          <Controller
+            name="customerCep"
+            control={control}
+            render={({ field }) => (
+              <AeroInput
+                label="CEP (opcional)"
+                placeholder="00000-000"
+                error={errors.customerCep?.message}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </div>
       </GlassCard>
 
-      {/* Section: Credit */}
+      {/* Section 2: Credit request */}
       <GlassCard>
         <h2 className="text-sm font-bold text-text mb-5 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-bold">2</span>
           Dados da Solicitação
         </h2>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <AeroInput
             label="Valor Solicitado (R$)"
             type="number"
             placeholder="50000"
+            hint="Mínimo R$ 500 · Máximo R$ 10.000.000"
             error={errors.valorSolicitado?.message}
             required
+            min={500}
+            max={10000000}
             {...register('valorSolicitado')}
           />
 
@@ -180,7 +202,8 @@ export function CreditRequestForm({ onSubmit, loading }: CreditRequestFormProps)
 
           <AeroInput
             label="Finalidade"
-            placeholder="Descreva a finalidade do crédito"
+            placeholder="Ex: Expansão do negócio, capital de giro..."
+            hint="Mínimo 10 caracteres"
             error={errors.finalidade?.message}
             required
             {...register('finalidade')}
@@ -189,7 +212,8 @@ export function CreditRequestForm({ onSubmit, loading }: CreditRequestFormProps)
           <div className="sm:col-span-2">
             <AeroTextarea
               label="Observações"
-              placeholder="Informações adicionais..."
+              placeholder="Informações adicionais sobre a solicitação..."
+              hint="Opcional · Máximo 1000 caracteres"
               {...register('observacoes')}
             />
           </div>
