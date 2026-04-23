@@ -10,9 +10,10 @@ import {
 import { RepositoryFactory } from '@/infrastructure/factories/RepositoryFactory';
 import { CreateCreditRequestUseCase } from '@/application/use-cases/CreateCreditRequestUseCase';
 import { ApproveCreditUseCase } from '@/application/use-cases/ApproveCreditUseCase';
+import { RejectCreditUseCase } from '@/application/use-cases/RejectCreditUseCase';
 import { ListCreditRequestsUseCase } from '@/application/use-cases/ListCreditRequestsUseCase';
 import { GetDashboardStatsUseCase } from '@/application/use-cases/GetDashboardStatsUseCase';
-import type { CreateCreditRequestDTO, ApproveCreditRequestDTO, CreditRequestSummaryDTO } from '@/application/dtos/CreditRequestDTO';
+import type { CreateCreditRequestDTO, ApproveCreditRequestDTO, RejectCreditRequestDTO, CreditRequestSummaryDTO } from '@/application/dtos/CreditRequestDTO';
 import type { DashboardStatsDTO } from '@/application/dtos/DashboardStatsDTO';
 import type { CreditRequestFilters } from '@/domain/repositories/ICreditRequestRepository';
 
@@ -27,6 +28,7 @@ interface CreditContextValue {
   loadDashboard: () => Promise<void>;
   createRequest: (dto: CreateCreditRequestDTO) => Promise<CreditRequestSummaryDTO>;
   approveRequest: (dto: ApproveCreditRequestDTO) => Promise<CreditRequestSummaryDTO>;
+  rejectRequest: (dto: RejectCreditRequestDTO) => Promise<CreditRequestSummaryDTO>;
 }
 
 const CreditContext = createContext<CreditContextValue | null>(null);
@@ -48,6 +50,7 @@ export function CreditProvider({ children }: { children: ReactNode }) {
       listRequests:   new ListCreditRequestsUseCase(creditRepo, customerRepo),
       createRequest:  new CreateCreditRequestUseCase(creditRepo, customerRepo, scoring),
       approveRequest: new ApproveCreditUseCase(creditRepo, customerRepo, approvalRepo),
+      rejectRequest:  new RejectCreditUseCase(creditRepo, customerRepo, approvalRepo),
       getDashboard:   new GetDashboardStatsUseCase(creditRepo),
     };
   }, []);
@@ -114,10 +117,27 @@ export function CreditProvider({ children }: { children: ReactNode }) {
     }
   }, [getUseCases]);
 
+  const rejectRequest = useCallback(async (dto: RejectCreditRequestDTO): Promise<CreditRequestSummaryDTO> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { rejectRequest: uc } = getUseCases();
+      const result = await uc.execute(dto);
+      setRequests((prev) => prev.map((r) => r.id === result.id ? result : r));
+      return result;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao rejeitar solicitação';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [getUseCases]);
+
   return (
     <CreditContext.Provider value={{
       requests, dashboardStats, loading, error,
-      loadRequests, loadDashboard, createRequest, approveRequest,
+      loadRequests, loadDashboard, createRequest, approveRequest, rejectRequest,
     }}>
       {children}
     </CreditContext.Provider>
