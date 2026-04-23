@@ -33,7 +33,7 @@ export function AeroInput({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-[#1a1a2e]/80">
+        <label htmlFor={inputId} className="text-sm font-medium text-text/80">
           {label}
           {props.required && <span className="text-orange-500 ml-1">*</span>}
         </label>
