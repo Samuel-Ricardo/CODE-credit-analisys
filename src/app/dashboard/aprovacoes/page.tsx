@@ -22,8 +22,8 @@ export default function AprovacoesPage() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#1a1a2e]">Aprovações</h2>
-          <p className="text-xs text-[#4a4a6a]/70">
+          <h2 className="text-xl font-bold text-text">Aprovações</h2>
+          <p className="text-xs text-text-muted/70">
             {pendentes.length} solicitaç{pendentes.length !== 1 ? 'ões' : 'ão'} aguardando análise
           </p>
         </div>
@@ -48,10 +48,10 @@ export default function AprovacoesPage() {
       {!loading && pendentes.length === 0 && (
         <GlassCard className="py-16 text-center">
           <CheckSquare size={40} className="mx-auto text-green-500 mb-3" />
-          <p className="text-sm font-medium text-[#4a4a6a]/70">
+          <p className="text-sm font-medium text-text-muted/70">
             Nenhuma solicitação pendente!
           </p>
-          <p className="text-xs text-[#4a4a6a]/50 mt-1">
+          <p className="text-xs text-text-muted/50 mt-1">
             Todas as solicitações foram processadas.
           </p>
         </GlassCard>

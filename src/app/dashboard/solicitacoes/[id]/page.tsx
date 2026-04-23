@@ -8,10 +8,11 @@ import { GlassCard } from '@/presentation/components/ui/GlassCard';
 import { AeroButton } from '@/presentation/components/ui/AeroButton';
 import { StatusBadge, RiskBadge } from '@/presentation/components/ui/StatusBadge';
 import { ScoreGauge } from '@/presentation/components/ui/ScoreGauge';
+import { ApprovalForm } from '@/presentation/components/credit/ApprovalForm';
 import type { CreditRequestSummaryDTO } from '@/application/dtos/CreditRequestDTO';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, XCircle } from 'lucide-react';
 import { useCreditContext } from '@/presentation/contexts/CreditContext';
 
 function formatMoney(value: number) {
@@ -23,15 +24,10 @@ const TIER_LABEL: Record<string, string> = {
   GERENTE_GERAL: 'Gerente Geral', DIRETORIA: 'Diretoria',
 };
 
-const MODALIDADE_LABEL: Record<string, string> = {
-  CREDITO_PESSOAL: 'Crédito Pessoal', CREDITO_PARCELADO: 'Crédito Parcelado',
-  CAPITAL_GIRO: 'Capital de Giro', FINANCIAMENTO: 'Financiamento',
-};
-
 export default function SolicitacaoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { approveRequest, loading } = useCreditContext();
+  const { approveRequest, rejectRequest, loading } = useCreditContext();
   const [request, setRequest] = useState<CreditRequestSummaryDTO | null>(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -48,13 +44,26 @@ export default function SolicitacaoDetailPage() {
     load();
   }, [id]);
 
-  const handleApprove = async () => {
+  const handleApprove = async ({ observacoes }: { observacoes?: string }) => {
     if (!request) return;
     const updated = await approveRequest({
       creditRequestId: request.id,
       usuarioId: 'user-current',
       usuarioNome: 'Ana Ferreira',
       alcada: 'GERENTE',
+      observacoes,
+    });
+    setRequest(updated);
+  };
+
+  const handleReject = async ({ motivoRejeicao }: { motivoRejeicao: string }) => {
+    if (!request) return;
+    const updated = await rejectRequest({
+      creditRequestId: request.id,
+      usuarioId: 'user-current',
+      usuarioNome: 'Ana Ferreira',
+      alcada: 'GERENTE',
+      motivoRejeicao,
     });
     setRequest(updated);
   };
@@ -62,7 +71,7 @@ export default function SolicitacaoDetailPage() {
   if (notFound) {
     return (
       <GlassCard className="text-center py-16">
-        <p className="text-lg font-bold text-[#1a1a2e]">Solicitação não encontrada</p>
+        <p className="text-lg font-bold text-text">Solicitação não encontrada</p>
         <AeroButton className="mt-4" onClick={() => router.back()}>
           <ArrowLeft size={14} /> Voltar
         </AeroButton>
@@ -88,31 +97,31 @@ export default function SolicitacaoDetailPage() {
           )}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-start gap-2 mb-2">
-              <h1 className="text-xl font-bold text-[#1a1a2e]">{request.customerNome}</h1>
+              <h1 className="text-xl font-bold text-text">{request.customerNome}</h1>
               <StatusBadge status={request.status} />
               {request.risco && <RiskBadge risk={request.risco} />}
             </div>
-            <p className="text-sm text-[#4a4a6a]/70 mb-3">
+            <p className="text-sm text-text-muted/70 mb-3">
               {request.numeroSolicitacao} · {request.customerDocumento}
             </p>
             <div className="flex flex-wrap gap-5 text-sm">
               <div>
-                <p className="text-[10px] text-[#4a4a6a]/60 uppercase tracking-wide">Solicitado</p>
-                <p className="font-bold text-[#1a1a2e] text-base">{formatMoney(request.valorSolicitado)}</p>
+                <p className="text-[10px] text-text-muted/60 uppercase tracking-wide">Solicitado</p>
+                <p className="font-bold text-text text-base">{formatMoney(request.valorSolicitado)}</p>
               </div>
               {request.valorAprovado != null && (
                 <div>
-                  <p className="text-[10px] text-[#4a4a6a]/60 uppercase tracking-wide">Aprovado</p>
+                  <p className="text-[10px] text-text-muted/60 uppercase tracking-wide">Aprovado</p>
                   <p className="font-bold text-green-600 text-base">{formatMoney(request.valorAprovado)}</p>
                 </div>
               )}
               <div>
-                <p className="text-[10px] text-[#4a4a6a]/60 uppercase tracking-wide">Alçada</p>
-                <p className="font-semibold text-[#1a1a2e]">{TIER_LABEL[request.alcadaRequerida]}</p>
+                <p className="text-[10px] text-text-muted/60 uppercase tracking-wide">Alçada</p>
+                <p className="font-semibold text-text">{TIER_LABEL[request.alcadaRequerida]}</p>
               </div>
               <div>
-                <p className="text-[10px] text-[#4a4a6a]/60 uppercase tracking-wide">Data</p>
-                <p className="font-semibold text-[#1a1a2e]">
+                <p className="text-[10px] text-text-muted/60 uppercase tracking-wide">Data</p>
+                <p className="font-semibold text-text">
                   {format(request.dataInclusao, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </p>
               </div>
@@ -123,7 +132,7 @@ export default function SolicitacaoDetailPage() {
 
       {/* Status timeline */}
       <GlassCard>
-        <h3 className="text-sm font-bold text-[#1a1a2e] mb-4">Linha do Tempo</h3>
+        <h3 className="text-sm font-bold text-text mb-4">Linha do Tempo</h3>
         <div className="flex items-center gap-2 text-xs">
           {['RASCUNHO', 'SOLICITADA', 'EM_ANALISE', 'EM_APROVACAO', 'APROVADA'].map((s, idx, arr) => {
             const statuses = ['RASCUNHO', 'SOLICITADA', 'EM_ANALISE', 'EM_APROVACAO', 'APROVADA', 'REJEITADA', 'CANCELADA'];
@@ -132,12 +141,12 @@ export default function SolicitacaoDetailPage() {
             const done = currentIdx >= stepIdx && request.status !== 'REJEITADA';
             return (
               <div key={s} className="flex items-center gap-2 flex-1">
-                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold
-                  ${done ? 'bg-orange-500 text-white' : 'bg-white/40 text-[#4a4a6a]/50 border border-white/60'}`}>
+                <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold
+                  ${done ? 'bg-orange-500 text-white' : 'bg-white/40 text-text-muted/50 border border-white/60'}`}>
                   {idx + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={done ? 'text-orange-600 font-semibold' : 'text-[#4a4a6a]/50'}>
+                  <p className={done ? 'text-orange-600 font-semibold' : 'text-text-muted/50'}>
                     {s.replace('_', ' ')}
                   </p>
                 </div>
@@ -155,20 +164,13 @@ export default function SolicitacaoDetailPage() {
         </div>
       </GlassCard>
 
-      {/* Actions */}
-      {['SOLICITADA', 'EM_ANALISE', 'EM_APROVACAO'].includes(request.status) && (
-        <GlassCard>
-          <h3 className="text-sm font-bold text-[#1a1a2e] mb-4">Ações</h3>
-          <div className="flex gap-3">
-            <AeroButton onClick={handleApprove} loading={loading}>
-              <CheckCircle size={15} /> Aprovar Solicitação
-            </AeroButton>
-            <AeroButton variant="danger">
-              <XCircle size={15} /> Rejeitar
-            </AeroButton>
-          </div>
-        </GlassCard>
-      )}
+      {/* Approval / rejection form */}
+      <ApprovalForm
+        request={request}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        loading={loading}
+      />
     </div>
   );
 }
