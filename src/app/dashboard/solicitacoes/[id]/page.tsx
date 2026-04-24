@@ -164,6 +164,14 @@ export default function SolicitacaoDetailPage() {
         </div>
       </GlassCard>
 
+      {/* Rejection motivo */}
+      {request.status === 'REJEITADA' && request.motivoRejeicao && (
+        <GlassCard>
+          <h3 className="text-sm font-bold text-red-500 mb-2">Motivo da Rejeição</h3>
+          <p className="text-sm text-text">{request.motivoRejeicao}</p>
+        </GlassCard>
+      )}
+
       {/* Approval / rejection form */}
       <ApprovalForm
         request={request}
