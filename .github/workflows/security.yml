@@ -1,0 +1,130 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Every Monday at 09:00 UTC (06:00 BRT)
+    - cron: '0 9 * * 1'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Job 1: npm audit — check for known vulnerabilities
+  # Fails on high/critical severity; reports moderate as warning
+  # ─────────────────────────────────────────────────────────────
+  npm-audit:
+    name: npm Audit (Vulnerability Scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit (production dependencies — strict)
+        run: npm audit --audit-level=high --omit=dev
+        # Fails the job if HIGH or CRITICAL vulnerabilities found in prod deps
+
+      - name: Run full audit report (all dependencies — informational)
+        run: npm audit --json > audit-report.json || true
+        # Does NOT fail — just generates the report
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report-${{ github.run_id }}
+          path: audit-report.json
+          retention-days: 30
+
+      - name: Display audit summary
+        if: always()
+        run: |
+          echo "=== npm Audit Summary ==="
+          npm audit --omit=dev || true
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 2: CodeQL — static analysis for security vulnerabilities
+  # Analyzes JavaScript/TypeScript for OWASP Top 10 patterns
+  # ─────────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Analysis (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript-typescript']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Includes security-and-quality queries (OWASP, CWE top 25)
+          queries: security-and-quality
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for CodeQL
+        run: npm run build
+        env:
+          NODE_ENV: production
+        # CodeQL needs the build to analyze transpiled output
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'
+          upload: true
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 3: Dependency review — block PRs that add vulnerable deps
+  # Only runs on pull_request events
+  # ─────────────────────────────────────────────────────────────
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on HIGH or CRITICAL vulnerabilities in new/updated deps
+          fail-on-severity: high
+          # Allow GPL-compatible licenses common in JS ecosystem
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, Unlicense
+          # Warn (not fail) on moderate severity
+          warn-only: false
