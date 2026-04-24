@@ -56,6 +56,7 @@ export class ListCreditRequestsUseCase {
       risco: req.scoreCredito ? CreditScore.riskFromScore(req.scoreCredito) : undefined,
       dataInclusao: req.dataInclusao,
       dataConclusao: req.dataConclusao,
+      motivoRejeicao: req.motivoRejeicao,
     };
   }
 }

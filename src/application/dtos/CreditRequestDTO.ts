@@ -68,6 +68,7 @@ export interface CreditRequestSummaryDTO {
   risco?: RiskLevel;
   dataInclusao: Date;
   dataConclusao?: Date;
+  motivoRejeicao?: string;
 }
 
 export interface CreditRequestDetailDTO extends CreditRequestSummaryDTO {
