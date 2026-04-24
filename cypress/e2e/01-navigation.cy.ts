@@ -55,17 +55,19 @@ describe('Navigation & Layout', () => {
 
   it('highlights Dashboard nav item when on /dashboard', () => {
     cy.visit('/dashboard');
-    // Active item has orange background
+    // Active item has 'active' class applied by the Sidebar component
     cy.contains('Dashboard')
       .closest('button, a, [class*="nav-item"]')
-      .should('have.class', /active|bg-white\/20|font-bold/);
+      .invoke('attr', 'class')
+      .should('match', /active|bg-white\/20|font-bold/);
   });
 
   it('highlights Solicitacoes nav item when on /dashboard/solicitacoes', () => {
     cy.visit('/dashboard/solicitacoes');
     cy.contains('Solicitacoes')
       .closest('button, a, [class*="nav-item"]')
-      .should('have.class', /active|bg-white\/20|font-bold/);
+      .invoke('attr', 'class')
+      .should('match', /active|bg-white\/20|font-bold/);
   });
 
   it('shows page header on dashboard', () => {

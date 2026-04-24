@@ -38,15 +38,15 @@ describe('Dashboard', () => {
   });
 
   it('renders stats cards after data loads', () => {
-    // Stats cards rendered by StatsCards component — each shows a label
-    cy.contains('Total de Solicitações', { timeout: 10000 }).should('be.visible');
-    cy.contains('Pendentes').should('be.visible');
-    cy.contains('Taxa de Aprovação').should('be.visible');
+    // Stats cards rendered by StatsCards component — actual titles from component
+    cy.contains('Total Solicitações', { timeout: 10000 }).should('be.visible');
+    cy.contains('Aprovadas').should('be.visible');
+    cy.contains('Rejeitadas').should('be.visible');
   });
 
   it('stats cards show numeric values from seeded mock data', () => {
     // Seeded data has 6 requests total (2 APROVADA, 1 EM_APROVACAO, 1 SOLICITADA, 1 EM_ANALISE, 1 REJEITADA)
-    cy.contains('Total de Solicitações', { timeout: 10000 })
+    cy.contains('Total Solicitações', { timeout: 10000 })
       .parents('[class*="glass"]')
       .find('[class*="text-3xl"], [class*="font-bold"]')
       .invoke('text')
@@ -58,7 +58,7 @@ describe('Dashboard', () => {
 
   it('renders the volume chart section', () => {
     // The chart wrappers are rendered (recharts or placeholder)
-    cy.contains('Volume por Dia', { timeout: 10000 }).should('exist');
+    cy.contains('Volume dos Últimos 7 Dias', { timeout: 10000 }).should('exist');
   });
 
   it('renders the score distribution chart section', () => {
