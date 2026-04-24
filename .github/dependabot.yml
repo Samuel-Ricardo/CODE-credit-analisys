@@ -1,0 +1,148 @@
+version: 2
+
+updates:
+  # ─────────────────────────────────────────────────────────────
+  # npm dependencies — weekly updates, grouped by category
+  # ─────────────────────────────────────────────────────────────
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'npm'
+    # Group related packages into a single PR to reduce noise
+    groups:
+      next-framework:
+        patterns:
+          - 'next'
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      vitest-testing:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - '@vitejs/*'
+          - 'jsdom'
+          - 'vite-tsconfig-paths'
+      cypress-e2e:
+        patterns:
+          - 'cypress'
+          - '@cypress/*'
+          - 'start-server-and-test'
+      typescript-types:
+        patterns:
+          - 'typescript'
+          - '@types/*'
+      eslint:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+      tailwind:
+        patterns:
+          - 'tailwindcss'
+          - '@tailwindcss/*'
+          - 'postcss'
+    # Ignore major version bumps for eslint (breaking changes)
+    ignore:
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+    commit-message:
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
+      include: 'scope'
+    reviewers:
+      - 'Samuel-Ricardo'
+    assignees:
+      - 'Samuel-Ricardo'
+
+  # ─────────────────────────────────────────────────────────────
+  # GitHub Actions — monthly updates
+  # ─────────────────────────────────────────────────────────────
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+    groups:
+      all-actions:
+        patterns:
+          - '*'
+    commit-message:
+      prefix: 'ci(actions)'
+      include: 'scope'
+    reviewers:
+      - 'Samuel-Ricardo'
+    assignees:
+      - 'Samuel-Ricardo'
+version: 2
+
+updates:
+  # Mantém as dependências do npm atualizadas
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "your-github-username" # Substitua pelo seu username
+    assignees:
+      - "your-github-username" # Substitua pelo seu username
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+    # Agrupa atualizações menores
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+    # Ignora versões específicas se necessário
+    ignore:
+      # Exemplo: ignorar atualizações major do React
+      # - dependency-name: "react"
+      #   update-types: ["version-update:semver-major"]
+
+  # Mantém as GitHub Actions atualizadas
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-github-username"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci:"
+      include: "scope"
