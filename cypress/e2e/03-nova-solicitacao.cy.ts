@@ -147,9 +147,11 @@ describe('Nova Solicitação — Credit Request Form', () => {
   });
 
   it('success screen shows customer name', () => {
-    cy.fillCreditFormPF({ nome: 'João Silva Teste' });
+    // CPF 529.982.247-25 matches seeded cust-001 (Ana Carolina Ferreira),
+    // so the use case returns the existing customer name, not the typed name.
+    cy.fillCreditFormPF();
     cy.contains('button[type="submit"]', 'Enviar Solicitação').click();
-    cy.contains('João Silva Teste', { timeout: 15000 }).should('be.visible');
+    cy.contains('Ana Carolina Ferreira', { timeout: 15000 }).should('be.visible');
   });
 
   it('success screen shows the requested value', () => {
@@ -199,9 +201,11 @@ describe('Nova Solicitação — Credit Request Form', () => {
   });
 
   it('PJ success screen shows company name', () => {
-    cy.fillCreditFormPJ({ nome: 'Empresa Teste Ltda.' });
+    // CNPJ 11.222.333/0001-81 matches seeded cust-002 (Tech Solutions Ltda.),
+    // so the use case returns the existing customer name, not the typed name.
+    cy.fillCreditFormPJ();
     cy.contains('button[type="submit"]', 'Enviar Solicitação').click();
-    cy.contains('Empresa Teste Ltda.', { timeout: 15000 }).should('be.visible');
+    cy.contains('Tech Solutions Ltda.', { timeout: 15000 }).should('be.visible');
   });
 
   // ── Approval Tier Assignment ───────────────────────────────────────────────
@@ -216,7 +220,8 @@ describe('Nova Solicitação — Credit Request Form', () => {
     // but we verify via navigation to list then detail
     cy.contains('button', 'Ver todas').click();
     cy.url().should('include', '/dashboard/solicitacoes');
-    cy.contains('João Silva Teste').should('exist');
+    // Seeded CPF maps to existing customer Ana Carolina Ferreira
+    cy.contains('Ana Carolina Ferreira').should('exist');
   });
 
   it('Voltar button navigates back', () => {
