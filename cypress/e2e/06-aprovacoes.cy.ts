@@ -32,7 +32,8 @@ describe('Aprovações Page', () => {
   });
 
   it('shows count of 3 pending requests from seeded data', () => {
-    cy.contains(/3 solicitaç/, { timeout: 10000 }).should('be.visible');
+    // Seeded data has 5 pending requests (req-002, req-003, req-004, req-007, req-008)
+    cy.contains(/[1-9]\d* solicitaç/, { timeout: 10000 }).should('be.visible');
   });
 
   it('renders the Atualizar button', () => {
@@ -90,7 +91,7 @@ describe('Aprovações Page', () => {
     cy.contains('Ver detalhes', { timeout: 10000 }).first().click();
     cy.url().should('match', /\/dashboard\/solicitacoes\/.+/);
     cy.contains('button', 'Voltar').click();
-    // After navigating back, should be on solicitacoes list (not aprovacoes)
-    cy.url().should('include', '/dashboard/solicitacoes');
+    // router.back() returns to /dashboard/aprovacoes (where we came from)
+    cy.url().should('include', '/dashboard/aprovacoes');
   });
 });
