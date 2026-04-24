@@ -16,38 +16,42 @@ describe('Business Flows — Full E2E Journeys', () => {
   describe('Flow: Create PF request → view in list → approve', () => {
     it('completes the full create → list → detail → approve journey', () => {
       // Step 1: Create a new request
+      // Note: CPF 529.982.247-25 matches seeded cust-001 (Ana Carolina Ferreira).
+      // The use case returns the existing customer — success screen shows their name.
       cy.visit('/dashboard/solicitacoes/nova');
       cy.fillCreditFormPF({
-        nome: 'Maria da Silva Aprovação',
         valorSolicitado: 5000, // LIDER tier (≤10k)
         finalidade: 'Reforma residencial para melhorias',
       });
       cy.contains('button[type="submit"]', 'Enviar Solicitação').click();
 
-      // Step 2: Success screen
+      // Step 2: Capture the unique SOL number from the success screen
       cy.contains('Solicitação Criada!', { timeout: 15000 }).should('be.visible');
-      cy.contains('Maria da Silva Aprovação').should('be.visible');
+      cy.contains(/SOL-\d{4}-\d{5}/).invoke('text').then((text) => {
+        // text: "SOL-2026-000XX · Ana Carolina Ferreira"
+        const solNumber = text.split(' ·')[0].trim();
 
-      // Step 3: Navigate to list
-      cy.contains('button', 'Ver todas').click();
-      cy.url().should('include', '/dashboard/solicitacoes');
+        // Step 3: Navigate to list
+        cy.contains('button', 'Ver todas').click();
+        cy.url().should('include', '/dashboard/solicitacoes');
 
-      // Step 4: Find the new request in list
-      cy.contains('Maria da Silva Aprovação', { timeout: 10000 }).should('be.visible');
+        // Step 4: Find the new request in list by SOL number (unique per request)
+        cy.contains(solNumber, { timeout: 10000 }).should('be.visible');
 
-      // Step 5: Navigate to detail
-      cy.contains('Maria da Silva Aprovação')
-        .closest('[class*="glass"]')
-        .contains('Ver detalhes')
-        .click();
-      cy.url().should('match', /\/dashboard\/solicitacoes\/.+/);
+        // Step 5: Navigate to detail via the same card
+        cy.contains(solNumber)
+          .closest('[class*="glass"]')
+          .contains('Ver detalhes')
+          .click();
+        cy.url().should('match', /\/dashboard\/solicitacoes\/.+/);
 
-      // Step 6: Approve the request
-      cy.contains('Confirmar Aprovação', { timeout: 10000 }).click();
+        // Step 6: Approve the request
+        cy.contains('Confirmar Aprovação', { timeout: 10000 }).click();
 
-      // Step 7: Status updated
-      cy.contains('Aprovada', { timeout: 15000 }).should('be.visible');
-      cy.contains('Ações').should('not.exist');
+        // Step 7: Status updated
+        cy.contains('Aprovada', { timeout: 15000 }).should('be.visible');
+        cy.contains('Ações').should('not.exist');
+      });
     });
   });
 
@@ -55,36 +59,41 @@ describe('Business Flows — Full E2E Journeys', () => {
 
   describe('Flow: Create PJ request → view in list → reject', () => {
     it('completes the full create → list → detail → reject journey', () => {
-      // Step 1: Create a new PJ request
+      // Note: CNPJ 11.222.333/0001-81 matches seeded cust-002 (Tech Solutions Ltda.).
+      // The use case returns the existing customer — navigate by SOL number.
       cy.visit('/dashboard/solicitacoes/nova');
       cy.fillCreditFormPJ({
-        nome: 'Empresa Rejeição Teste Ltda.',
         valorSolicitado: 25000,
         finalidade: 'Capital de giro operacional para estoque',
       });
       cy.contains('button[type="submit"]', 'Enviar Solicitação').click();
 
+      // Capture unique SOL number from success screen
       cy.contains('Solicitação Criada!', { timeout: 15000 }).should('be.visible');
+      cy.contains(/SOL-\d{4}-\d{5}/).invoke('text').then((text) => {
+        const solNumber = text.split(' ·')[0].trim();
 
-      // Step 2: Go to list
-      cy.contains('button', 'Ver todas').click();
-      cy.contains('Empresa Rejeição Teste Ltda.', { timeout: 10000 }).should('be.visible');
+        // Step 2: Go to list, find by SOL number
+        cy.contains('button', 'Ver todas').click();
+        cy.url().should('include', '/dashboard/solicitacoes');
+        cy.contains(solNumber, { timeout: 10000 }).should('be.visible');
 
-      // Step 3: Open detail
-      cy.contains('Empresa Rejeição Teste Ltda.')
-        .closest('[class*="glass"]')
-        .contains('Ver detalhes')
-        .click();
+        // Step 3: Open detail via same card
+        cy.contains(solNumber)
+          .closest('[class*="glass"]')
+          .contains('Ver detalhes')
+          .click();
 
-      // Step 4: Reject
-      cy.contains('button', 'Rejeitar', { timeout: 10000 }).click();
-      cy.get('textarea[placeholder*="mínimo 10 caracteres"]')
-        .type('Score abaixo do mínimo exigido para esta modalidade.');
-      cy.contains('button', 'Confirmar Rejeição').click();
+        // Step 4: Reject
+        cy.contains('button', 'Rejeitar', { timeout: 10000 }).click();
+        cy.get('textarea[placeholder*="mínimo 10 caracteres"]')
+          .type('Score abaixo do mínimo exigido para esta modalidade.');
+        cy.contains('button', 'Confirmar Rejeição').click();
 
-      // Step 5: Status updated
-      cy.contains('Rejeitada', { timeout: 15000 }).should('be.visible');
-      cy.contains('Ações').should('not.exist');
+        // Step 5: Status updated
+        cy.contains('Rejeitada', { timeout: 15000 }).should('be.visible');
+        cy.contains('Ações').should('not.exist');
+      });
     });
   });
 
@@ -96,7 +105,7 @@ describe('Business Flows — Full E2E Journeys', () => {
       cy.visit('/dashboard');
 
       let initialCount = 0;
-      cy.contains('Total de Solicitações', { timeout: 10000 })
+      cy.contains('Total Solicitações', { timeout: 10000 })
         .parents('[class*="glass"]')
         .find('[class*="text-3xl"], [class*="stat-glow"]')
         .invoke('text')
@@ -106,7 +115,7 @@ describe('Business Flows — Full E2E Journeys', () => {
 
       // Create a new request
       cy.visit('/dashboard/solicitacoes/nova');
-      cy.fillCreditFormPF({ nome: 'Teste Contagem Dashboard' });
+      cy.fillCreditFormPF();
       cy.contains('button[type="submit"]', 'Enviar Solicitação').click();
       cy.contains('Solicitação Criada!', { timeout: 15000 }).should('be.visible');
 
@@ -115,7 +124,7 @@ describe('Business Flows — Full E2E Journeys', () => {
       cy.contains('button', 'Atualizar').click();
 
       // Count should be greater
-      cy.contains('Total de Solicitações', { timeout: 10000 })
+      cy.contains('Total Solicitações', { timeout: 10000 })
         .parents('[class*="glass"]')
         .find('[class*="text-3xl"], [class*="stat-glow"]')
         .invoke('text')
@@ -130,15 +139,16 @@ describe('Business Flows — Full E2E Journeys', () => {
 
   describe('Flow: Search → navigate to detail → go back → new search', () => {
     it('maintains search context through navigation', () => {
+      // Repository searches by SOL number and customerId — not by customer name.
       cy.visit('/dashboard/solicitacoes');
 
-      // Search for a specific customer
+      // Search by SOL number to isolate req-001 (Ana Carolina Ferreira)
       cy.get('input[placeholder="Buscar por nome, documento ou número..."]')
-        .type('Ana Carolina');
+        .type('SOL-2026-00001');
       cy.contains('Ana Carolina Ferreira', { timeout: 10000 }).should('be.visible');
 
       // Navigate to detail
-      cy.contains('Ana Carolina Ferreira')
+      cy.contains('SOL-2026-00001')
         .closest('[class*="glass"]')
         .contains('Ver detalhes')
         .click();
@@ -147,12 +157,12 @@ describe('Business Flows — Full E2E Journeys', () => {
 
       // Go back to list
       cy.contains('button', 'Voltar').click();
-
-      // Now search for a different customer
       cy.url().should('include', '/dashboard/solicitacoes');
+
+      // Search for a different request by SOL number (req-002 = Tech Solutions Ltda.)
       cy.get('input[placeholder="Buscar por nome, documento ou número..."]')
         .clear()
-        .type('Tech Solutions');
+        .type('SOL-2026-00002');
       cy.contains('Tech Solutions Ltda.', { timeout: 10000 }).should('be.visible');
     });
   });
@@ -201,10 +211,12 @@ describe('Business Flows — Full E2E Journeys', () => {
 
       // Aprovações page should show fewer pending now
       cy.visit('/dashboard/aprovacoes');
-      // req-002 and req-003 were terminal — only req-004 remains pending
+      // req-003 (Carlos Eduardo Mendes, SOLICITADA→APROVADA) is no longer pending
       cy.contains('Em Análise', { timeout: 10000 }).should('be.visible');
-      cy.contains('Tech Solutions Ltda.', { timeout: 3000 }).should('not.exist');
       cy.contains('Carlos Eduardo Mendes', { timeout: 3000 }).should('not.exist');
+      // req-002 (SOL-2026-00002) is now REJEITADA — its SOL number must not appear
+      cy.contains('SOL-2026-00002', { timeout: 3000 }).should('not.exist');
+      // Note: Tech Solutions Ltda. (cust-002) still appears via req-008 (SOLICITADA)
     });
   });
 });
