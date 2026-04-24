@@ -195,7 +195,8 @@ describe('Solicitação Detail — Approval & Rejection Flow', () => {
 
     it('rejects empty motivo with validation error', () => {
       cy.contains('button', 'Confirmar Rejeição').click();
-      cy.contains('obrigatório', { matchCase: false }).should('be.visible');
+      // Zod .min(10) fires for empty string: 'Informe o motivo com pelo menos 10 caracteres'
+      cy.contains('10 caracteres', { matchCase: false }).should('be.visible');
     });
 
     it('rejects motivo with < 10 chars with validation error', () => {
