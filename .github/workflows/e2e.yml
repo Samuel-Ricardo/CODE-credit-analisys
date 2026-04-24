@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   # ─────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '22.x'
   # Cypress configuration
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
   CYPRESS_VIDEO: true
