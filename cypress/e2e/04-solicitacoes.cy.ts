@@ -52,7 +52,8 @@ describe('Solicitações — List Page', () => {
   });
 
   it('shows result count greater than 0 with seeded data', () => {
-    cy.contains(/\d+ solicitaç/, { timeout: 10000 }).invoke('text').then((text) => {
+    // Use regex that only matches non-zero counts (avoids matching "0 solicitações" on initial render)
+    cy.contains(/[1-9]\d* solicitaç/, { timeout: 10000 }).invoke('text').then((text) => {
       const count = parseInt(text.trim(), 10);
       expect(count).to.be.greaterThan(0);
     });
@@ -101,8 +102,10 @@ describe('Solicitações — List Page', () => {
   // ── Search Functionality ───────────────────────────────────────────────────
 
   it('search by customer name filters the list', () => {
+    // Repository searches by numeroSolicitacao and customerId (not by name directly).
+    // Search by SOL number to isolate Ana Carolina Ferreira's request card.
     cy.get('input[placeholder="Buscar por nome, documento ou número..."]')
-      .type('Ana Carolina');
+      .type('SOL-2026-00001');
 
     cy.contains('Ana Carolina Ferreira', { timeout: 10000 }).should('be.visible');
     // Other customers should not appear (filtered out)
@@ -126,7 +129,7 @@ describe('Solicitações — List Page', () => {
 
   it('clearing search restores full list', () => {
     cy.get('input[placeholder="Buscar por nome, documento ou número..."]')
-      .type('Ana Carolina');
+      .type('SOL-2026-00001');
     cy.contains('Ana Carolina Ferreira', { timeout: 10000 }).should('be.visible');
 
     cy.get('input[placeholder="Buscar por nome, documento ou número..."]').clear();
@@ -139,33 +142,35 @@ describe('Solicitações — List Page', () => {
   it('filtering by APROVADA shows only approved requests', () => {
     cy.get('select').select('APROVADA');
 
-    cy.contains('Aprovada', { timeout: 10000 }).should('be.visible');
-    // Requests in other statuses should not appear
-    cy.contains('Solicitada', { timeout: 3000 }).should('not.exist');
-    cy.contains('Em Análise', { timeout: 3000 }).should('not.exist');
+    // Scope to .badge elements — the dropdown <option> elements also contain these texts
+    // but they don't have the .badge class, so scoping avoids false negatives
+    cy.get('.badge', { timeout: 10000 }).contains('Aprovada').should('be.visible');
+    cy.get('.badge').contains('Solicitada').should('not.exist');
+    cy.get('.badge').contains('Em Análise').should('not.exist');
   });
 
   it('filtering by SOLICITADA shows only submitted requests', () => {
     cy.get('select').select('SOLICITADA');
 
-    cy.contains('Solicitada', { timeout: 10000 }).should('be.visible');
-    cy.contains('Aprovada', { timeout: 3000 }).should('not.exist');
+    cy.get('.badge', { timeout: 10000 }).contains('Solicitada').should('be.visible');
+    cy.get('.badge').contains('Aprovada').should('not.exist');
   });
 
   it('filtering by REJEITADA shows only rejected requests', () => {
     cy.get('select').select('REJEITADA');
 
-    cy.contains('Rejeitada', { timeout: 10000 }).should('be.visible');
-    cy.contains('Aprovada', { timeout: 3000 }).should('not.exist');
+    cy.get('.badge', { timeout: 10000 }).contains('Rejeitada').should('be.visible');
+    cy.get('.badge').contains('Aprovada').should('not.exist');
   });
 
   it('selecting Todos os status restores full list', () => {
     cy.get('select').select('APROVADA');
-    cy.contains('Aprovada', { timeout: 10000 }).should('be.visible');
+    cy.get('.badge', { timeout: 10000 }).contains('Aprovada').should('be.visible');
 
-    cy.get('select').select('');
-    cy.contains('Rejeitada', { timeout: 10000 }).should('be.visible');
-    cy.contains('Aprovada').should('be.visible');
+    // Select by text to avoid cy.select('') ambiguity
+    cy.get('select').select('Todos os status');
+    cy.get('.badge', { timeout: 10000 }).contains('Rejeitada').should('be.visible');
+    cy.get('.badge').contains('Aprovada').should('be.visible');
   });
 
   // ── Navigation to Detail ───────────────────────────────────────────────────
