@@ -16,7 +16,10 @@
     "cy:run": "cypress run",
     "cy:run:e2e": "cypress run --spec \"cypress/e2e/**/*.cy.ts\"",
     "test:e2e": "start-server-and-test dev http://localhost:3000 cy:run:e2e",
-    "test:e2e:open": "start-server-and-test dev http://localhost:3000 cy:open"
+    "test:e2e:open": "start-server-and-test dev http://localhost:3000 cy:open",
+    "ci": "npm run lint && npm run type-check && npm run test:coverage && npm run build",
+    "ci:e2e": "start-server-and-test start http-get://127.0.0.1:3000 cy:run:e2e",
+    "ci:full": "npm run ci && npm run ci:e2e"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
