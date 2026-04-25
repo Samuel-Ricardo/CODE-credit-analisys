@@ -3,28 +3,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreditRequestForm } from '@/presentation/components/credit/CreditRequestForm';
 
-function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
-  return async () => {
-    await user.type(screen.getByPlaceholderText('000.000.000-00'), '52998224725');
-    await user.type(screen.getByPlaceholderText(/nome do cliente/i), 'Ana Ferreira');
-    await user.type(screen.getByPlaceholderText('email@exemplo.com'), 'ana@ferreira.com');
-    await user.type(screen.getByPlaceholderText('(11) 99999-9999'), '11999990001');
-    await user.type(screen.getByPlaceholderText('5000'), '8000');
-    await user.type(screen.getByPlaceholderText('5000'), '8000');
-
-    // Select Bandeira (first option after default empty)
-    const bandeiraSelect = screen.getByLabelText(/bandeira/i);
-    await user.selectOptions(bandeiraSelect, 'bandeira-visa');
-
-    // Select Modalidade
-    const modalidadeSelect = screen.getByLabelText(/modalidade/i);
-    await user.selectOptions(modalidadeSelect, 'CREDITO_PESSOAL');
-
-    await user.type(screen.getByPlaceholderText(/compra de equipamentos/i), 'Compra de notebooks para home office.');
-    await user.type(screen.getByLabelText(/valor solicitado/i), '5000');
-  };
-}
-
 describe('CreditRequestForm', () => {
   let onSubmit: ReturnType<typeof vi.fn>;
 

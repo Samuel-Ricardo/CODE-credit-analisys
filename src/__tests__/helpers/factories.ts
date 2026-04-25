@@ -2,8 +2,8 @@
  * Test Factories — deterministic builders for domain objects.
  * All CPF/CNPJ values used here are mathematically valid.
  */
-import { CreditRequest, CreditRequestProps, CreditRequestStatus, ApprovalTier } from '@/domain/entities/CreditRequest';
-import { Customer, CustomerProps, CustomerType } from '@/domain/entities/Customer';
+import { CreditRequest, CreditRequestStatus, ApprovalTier } from '@/domain/entities/CreditRequest';
+import { Customer, CustomerType } from '@/domain/entities/Customer';
 import { Approval, ApprovalAction } from '@/domain/entities/Approval';
 import { CreditScore } from '@/domain/entities/CreditScore';
 import { Money } from '@/domain/value-objects/Money';

@@ -2,7 +2,6 @@ import { ICreditRequestRepository } from "@/domain/repositories/ICreditRequestRe
 import { ICustomerRepository } from "@/domain/repositories/ICustomerRepository";
 import { IApprovalRepository } from "@/domain/repositories/IApprovalRepository";
 import { Approval } from "@/domain/entities/Approval";
-import { Money } from "@/domain/value-objects/Money";
 import {
   CreditRequestNotFoundError,
   InsufficientApprovalTierError,
