@@ -1,0 +1,321 @@
+@import "tailwindcss";
+
+/* ============================================================
+   FRUTIGER AERO — ORANGE THEME DESIGN TOKENS
+   ============================================================ */
+@theme {
+  /* Primary — Orange Spectrum */
+  --color-primary-50:  #FFF3E0;
+  --color-primary-100: #FFE0B2;
+  --color-primary-200: #FFCC80;
+  --color-primary-300: #FFB74D;
+  --color-primary-400: #FFA726;
+  --color-primary-500: #FF9800;
+  --color-primary-600: #FB8C00;
+  --color-primary-700: #F57C00;
+  --color-primary-800: #EF6C00;
+  --color-primary-900: #E65100;
+
+  /* Sky — Frutiger Aero Accent */
+  --color-sky-100: #E1F5FE;
+  --color-sky-200: #B3E5FC;
+  --color-sky-300: #81D4FA;
+  --color-sky-400: #4FC3F7;
+  --color-sky-500: #29B6F6;
+  --color-sky-600: #039BE5;
+
+  /* Surface & Text */
+  --color-surface:      rgba(255, 255, 255, 0.55);
+  --color-surface-dark: rgba(255, 255, 255, 0.2);
+  --color-text:         #1a1a2e;
+  --color-text-muted:   #4a4a6a;
+  --color-border:       rgba(255, 255, 255, 0.6);
+
+  /* Semantic */
+  --color-success: #4CAF50;
+  --color-error:   #EF5350;
+  --color-warning: #FF9800;
+  --color-info:    #29B6F6;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Radius */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --shadow-card:  0 4px 24px rgba(31, 38, 135, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-glow:  0 4px 20px rgba(245, 124, 0, 0.4);
+  --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+@layer base {
+  :root {
+    --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+    --aero-sky: #87CEEB;
+    --aero-orange: #F57C00;
+    --aero-glass: rgba(255, 255, 255, 0.35);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-inter);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  /* Aero scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(245, 124, 0, 0.4);
+    border-radius: 100px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 124, 0, 0.7);
+  }
+}
+
+@layer utilities {
+  /* Frutiger Aero glass card */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  /* Orange glossy button */
+  .btn-glossy {
+    background: linear-gradient(180deg, rgba(255, 200, 80, 0.7) 0%, #F57C00 55%, #C75000 100%);
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.45), inset 0 1px 0 rgba(255, 220, 100, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-glossy::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, transparent 100%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* Aero orb decoration */
+  .aero-orb {
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  /* Shine animation on hover */
+  .shine-hover {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shine-hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 100%
+    );
+    transform: skewX(-20deg);
+    pointer-events: none;
+    transition: left 0.7s ease;
+  }
+
+  .shine-hover:hover::after {
+    left: 200%;
+  }
+
+  /* Number stats glow */
+  .stat-glow {
+    text-shadow: 0 0 20px rgba(245, 124, 0, 0.3);
+  }
+
+  /* ── Frutiger Aero Background ── */
+  .aero-bg {
+    background:
+      radial-gradient(ellipse 120% 60% at 10% 0%, rgba(135, 206, 235, 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 90% 100%, rgba(255, 152, 0, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 80% at 50% 50%, rgba(255, 255, 255, 0.6) 0%, transparent 100%),
+      linear-gradient(160deg, #c9e8f8 0%, #e8f4fb 20%, #fffdf5 50%, #fff3e0 80%, #e3f2fd 100%);
+    min-height: 100vh;
+  }
+
+  /* ── Glass Card ── */
+  .glass {
+    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07), inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+
+  .glass-dark {
+    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  /* ── Orange Glossy Button ── */
+  .btn-aero {
+    background: linear-gradient(180deg, #FFB74D 0%, #F57C00 50%, #E65100 100%);
+    box-shadow: 0 4px 16px rgba(245,124,0,0.45), inset 0 1px 0 rgba(255,220,100,0.55), inset 0 -1px 0 rgba(0,0,0,0.12);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn-aero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 48%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .btn-aero:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(245,124,0,0.55), inset 0 1px 0 rgba(255,220,100,0.55);
+  }
+
+  .btn-aero:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(245,124,0,0.35);
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    background: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.6);
+    backdrop-filter: blur(8px);
+    color: #1a1a2e;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.65);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  /* ── Status Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    backdrop-filter: blur(8px);
+  }
+
+  .badge-approved  { background: rgba(76,175,80,0.18); color: #2e7d32; border: 1px solid rgba(76,175,80,0.35); }
+  .badge-rejected  { background: rgba(239,83,80,0.15); color: #c62828; border: 1px solid rgba(239,83,80,0.3); }
+  .badge-pending   { background: rgba(245,124,0,0.15); color: #e65100; border: 1px solid rgba(245,124,0,0.3); }
+  .badge-analysis  { background: rgba(41,182,246,0.15); color: #0277bd; border: 1px solid rgba(41,182,246,0.3); }
+  .badge-draft     { background: rgba(120,120,120,0.12); color: #424242; border: 1px solid rgba(120,120,120,0.25); }
+
+  /* ── Aero Input ── */
+  .input-aero {
+    background: rgba(255,255,255,0.7);
+    border: 1.5px solid rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    color: #1a1a2e;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+  }
+
+  .input-aero::placeholder {
+    color: rgba(74,74,106,0.5);
+  }
+
+  .input-aero:focus {
+    border-color: rgba(245,124,0,0.6);
+    box-shadow: 0 0 0 3px rgba(245,124,0,0.12), 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  /* ── Sidebar Item ── */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+  }
+
+  .nav-item.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  /* ── Score Ring Colors ── */
+  .score-muito-baixo { color: #4CAF50; }
+  .score-baixo       { color: #8BC34A; }
+  .score-medio       { color: #FF9800; }
+  .score-alto        { color: #FF5722; }
+  .score-muito-alto  { color: #F44336; }
+}
+

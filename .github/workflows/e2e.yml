@@ -2,6 +2,145 @@ name: E2E Tests
 
 on:
   push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/dependabot.yml'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/dependabot.yml'
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Job: Build the Next.js application (production mode)
+  # The .next/ output is passed to the E2E job via artifact
+  # ─────────────────────────────────────────────────────────────
+  build:
+    name: Build (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-build-${{ github.run_id }}
+          path: |
+            .next/
+            !.next/cache
+          retention-days: 1
+
+  # ─────────────────────────────────────────────────────────────
+  # Job: Cypress E2E Tests
+  # Runs against the production build served by `next start`
+  # Uses cypress-io/github-action for Cypress binary caching
+  # ─────────────────────────────────────────────────────────────
+  e2e:
+    name: Cypress E2E (${{ matrix.spec-group }})
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - spec-group: 'navigation-dashboard'
+            spec: 'cypress/e2e/01-navigation.cy.ts,cypress/e2e/02-dashboard.cy.ts'
+          - spec-group: 'solicitacoes'
+            spec: 'cypress/e2e/03-nova-solicitacao.cy.ts,cypress/e2e/04-solicitacoes.cy.ts'
+          - spec-group: 'aprovacoes-flows'
+            spec: 'cypress/e2e/05-detalhe-aprovacao.cy.ts,cypress/e2e/06-aprovacoes.cy.ts,cypress/e2e/07-business-flows.cy.ts'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-build-${{ github.run_id }}
+          path: .next/
+
+      - name: Run Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          start: npm run start
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 60
+          browser: chrome
+          spec: ${{ matrix.spec }}
+        env:
+          CYPRESS_BASE_URL: http://localhost:3000
+
+      - name: Upload Cypress screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-${{ matrix.spec-group }}-${{ github.run_id }}
+          path: cypress/screenshots/
+          retention-days: 7
+
+      - name: Upload Cypress videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos-${{ matrix.spec-group }}-${{ github.run_id }}
+          path: cypress/videos/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # Job: E2E Gate — single required status check
+  # ─────────────────────────────────────────────────────────────
+  e2e-success:
+    name: E2E Passed
+    runs-on: ubuntu-latest
+    needs: [e2e]
+    if: always()
+    steps:
+      - name: Check E2E result
+        run: |
+          if [[ "${{ needs.e2e.result }}" != "success" ]]; then
+            echo "❌ E2E tests failed — result: ${{ needs.e2e.result }}"
+            exit 1
+          fi
+          echo "✅ All E2E test groups passed."
+name: E2E Tests
+
+on:
+  push:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
@@ -15,7 +154,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '22.x'
   # Cypress configuration
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
   CYPRESS_VIDEO: true

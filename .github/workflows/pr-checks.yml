@@ -2,6 +2,194 @@ name: PR Checks
 
 on:
   pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Job 1: Validate PR title follows Conventional Commits spec
+  # https://www.conventionalcommits.org/
+  # ─────────────────────────────────────────────────────────────
+  validate-pr-title:
+    name: Validate PR Title (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Allowed commit types
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          # Allowed scopes (optional — leave blank to allow any scope)
+          # scopes: |
+          #   ui
+          #   api
+          #   domain
+          #   application
+          #   e2e
+          requireScope: false
+          # Subject must not start with uppercase
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The PR title subject "{subject}" must not start with an uppercase letter.
+            Expected format: type(optional-scope): lowercase description
+            Examples:
+              feat(ui): add rejection reason card on detail page
+              fix(e2e): align Cypress assertions with seeded data
+              chore(deps): update cypress to v15
+          # Require a body if the PR modifies more than N files
+          validateSingleCommit: false
+          disallowScopes:
+            - release
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 2: Validate branch naming convention
+  # Expected: feat/, fix/, chore/, ci/, docs/, refactor/, test/
+  # ─────────────────────────────────────────────────────────────
+  validate-branch-name:
+    name: Validate Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Branch: $BRANCH"
+          PATTERN="^(feat|fix|chore|ci|docs|refactor|test|perf|style|revert|hotfix|release|build)/.+"
+          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
+            echo "❌ Branch name '$BRANCH' does not follow the naming convention."
+            echo ""
+            echo "Expected pattern: <type>/<short-description>"
+            echo "Examples:"
+            echo "  feat/add-dashboard-charts"
+            echo "  fix/e2e-approval-flow"
+            echo "  chore/update-dependencies"
+            echo "  ci/add-security-workflow"
+            exit 1
+          fi
+          echo "✅ Branch name '$BRANCH' is valid."
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 3: PR size check — warn on large PRs
+  # ─────────────────────────────────────────────────────────────
+  pr-size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Evaluate PR size
+        id: size
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          ADDITIONS=$(git diff --numstat $BASE..$HEAD | awk '{sum+=$1} END {print sum+0}')
+          DELETIONS=$(git diff --numstat $BASE..$HEAD | awk '{sum+=$2} END {print sum+0}')
+          FILES=$(git diff --name-only $BASE..$HEAD | wc -l | tr -d ' ')
+          TOTAL=$((ADDITIONS + DELETIONS))
+
+          echo "additions=$ADDITIONS" >> $GITHUB_OUTPUT
+          echo "deletions=$DELETIONS" >> $GITHUB_OUTPUT
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+
+          echo "📊 PR Stats:"
+          echo "  Files changed : $FILES"
+          echo "  Additions     : +$ADDITIONS"
+          echo "  Deletions     : -$DELETIONS"
+          echo "  Total lines   : $TOTAL"
+
+          if [ "$TOTAL" -gt 1500 ]; then
+            echo "size_label=XL" >> $GITHUB_OUTPUT
+            echo "⚠️  XL PR ($TOTAL lines changed). Consider splitting."
+          elif [ "$TOTAL" -gt 600 ]; then
+            echo "size_label=L" >> $GITHUB_OUTPUT
+            echo "ℹ️  Large PR ($TOTAL lines changed)."
+          elif [ "$TOTAL" -gt 300 ]; then
+            echo "size_label=M" >> $GITHUB_OUTPUT
+            echo "✅ Medium PR ($TOTAL lines changed)."
+          else
+            echo "size_label=S" >> $GITHUB_OUTPUT
+            echo "✅ Small PR ($TOTAL lines changed)."
+          fi
+
+      - name: Comment PR size summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const additions = '${{ steps.size.outputs.additions }}';
+            const deletions = '${{ steps.size.outputs.deletions }}';
+            const files     = '${{ steps.size.outputs.files }}';
+            const total     = '${{ steps.size.outputs.total }}';
+            const label     = '${{ steps.size.outputs.size_label }}';
+
+            const icons = { S: '🟢', M: '🟡', L: '🟠', XL: '🔴' };
+            const icon  = icons[label] || '⚪';
+
+            const body = [
+              `## ${icon} PR Size: **${label}**`,
+              '',
+              '| Metric | Value |',
+              '|--------|-------|',
+              `| Files changed | ${files} |`,
+              `| Lines added   | +${additions} |`,
+              `| Lines removed | -${deletions} |`,
+              `| Total changes | ${total} |`,
+              '',
+              label === 'XL'
+                ? '> ⚠️ **Large PR detected.** Consider breaking this into smaller, focused pull requests to ease review.'
+                : '> ✅ PR size looks good.',
+            ].join('\n');
+
+            // Find and update existing size comment, or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('PR Size:')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+name: PR Checks
+
+on:
+  pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:

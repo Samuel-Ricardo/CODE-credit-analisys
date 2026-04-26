@@ -1,1 +1,0 @@
-# CODE-credit-analisys

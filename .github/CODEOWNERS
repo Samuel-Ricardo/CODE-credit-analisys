@@ -1,0 +1,50 @@
+# CODEOWNERS
+# Each line defines a pattern and the owner(s) responsible for those files.
+# Owners are automatically requested for review when a PR modifies matching files.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ─────────────────────────────────────────────────────────────
+# Global default: all files not matched below
+# ─────────────────────────────────────────────────────────────
+* @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# CI/CD & GitHub configuration
+# ─────────────────────────────────────────────────────────────
+.github/ @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# Domain layer — core business rules (highest criticality)
+# ─────────────────────────────────────────────────────────────
+src/domain/ @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# Application layer — use cases and DTOs
+# ─────────────────────────────────────────────────────────────
+src/application/ @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# Infrastructure layer — repositories and mock data
+# ─────────────────────────────────────────────────────────────
+src/infrastructure/ @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# Presentation layer — UI components
+# ─────────────────────────────────────────────────────────────
+src/presentation/ @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# Test files — unit, integration, and E2E
+# ─────────────────────────────────────────────────────────────
+src/__tests__/ @Samuel-Ricardo
+cypress/ @Samuel-Ricardo
+
+# ─────────────────────────────────────────────────────────────
+# Build and project configuration
+# ─────────────────────────────────────────────────────────────
+package.json @Samuel-Ricardo
+package-lock.json @Samuel-Ricardo
+next.config.ts @Samuel-Ricardo
+tsconfig.json @Samuel-Ricardo
+vitest.config.ts @Samuel-Ricardo
+cypress.config.ts @Samuel-Ricardo
